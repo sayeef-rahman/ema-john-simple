@@ -11,22 +11,41 @@ const Shop = () => {
     useEffect(() =>{
         fetch('products.json')
         .then(res => res.json())
-        .then(data=>setProducts(data));
+        .then(data => setProducts(data));
     },[]);
 
     useEffect(() => {
+        // console.log("Local Storage first line",products);
         const storedCart = getStoredCart();
+        const savedCart = [];
         for(const id in storedCart){
-            const addedproduct = products.find(product=>product.id === id)
-            console.log(addedproduct);
-        }
-    },[])
+            const addedProduct = products.find(product=>product.id === id);
+            if(addedProduct){
+                const quantity = storedCart[id];
+                addedProduct.quantity = quantity;
+                savedCart.push(addedProduct);
+            }
 
-    const handleAddToCart = (product) =>{
-        console.log(product);
-        const newCart = [...cart, product];
+        }
+        setCart(savedCart);
+    },[products])
+
+    const handleAddToCart = (selectedProduct) =>{
+        console.log(selectedProduct);
+        let newCart = [];
+        const exists = cart.find(product => product.id === selectedProduct.id);
+        if(!exists){
+            selectedProduct.quantity = 1;
+            newCart = [...cart, selectedProduct];
+        }
+        else{
+            const rest = cart.filter(product => product.id !== selectedProduct.id);
+            exists.quantity = exists.quantity + 1;
+            newCart = [...rest, exists];
+        }
+        
         setCart(newCart);
-        addToDb(product.id);
+        addToDb(selectedProduct.id);
     }
 
     return (
